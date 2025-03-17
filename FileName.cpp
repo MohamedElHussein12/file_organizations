@@ -1,67 +1,74 @@
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <vector>
 
 using namespace std;
 
-//  encryption function
-string encrypt(const string& text, int shift) {
-    string encryptedText = text;
-    for (char& ch : encryptedText) {
-        if (isalpha(ch)) {
-            char base = islower(ch) ? 'a' : 'A';
-            ch = (ch - base + shift) % 26 + base;
-        }
-    }
-    return encryptedText;
-}
-
-//  Dencryption function
-
-string decrypt(const string& text, int shift) {
-    return encrypt(text, 26 - shift); //  Reverse encryption with the same shift  
-}
-
-// function to read file content   
+//function to read file content
 string readFile(const string& filename) {
     ifstream file(filename);
     if (!file) {
-        cerr << "error: file could not be opened      " << filename << endl;
-        exit(1);
+        cerr << "error: file counld not be opend " << filename << endl;
+        return "";
     }
     string content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     file.close();
     return content;
 }
 
+//function to write text to file 
+
 void writeFile(const string& filename, const string& content) {
     ofstream file(filename);
     if (!file) {
-        cerr << "error: file could not be opened " << filename << endl;
-        exit(1);
+        cerr << "error: file counld not be opend " << filename << endl;
+        return;
     }
     file << content;
     file.close();
 }
 
-int main() {
-    string inputFilename = "input.txt";
-    string encodedFilename = "encoded.txt";
-    string decodedFilename = "decoded.txt";
-    int shift = 3; //amount of offset in encrypition
+//function to insert text at specific position
+void insertText(const string& filename, const string& text, int position) {
+    string content = readFile(filename);
 
-    // read text in encrypition file
-    string originalText = readFile(inputFilename);
-    cout << "Original text:\n" << originalText << endl;
-    //encrypt text and save it to file
-    string encryptedText = encrypt(originalText, shift);
-    writeFile(encodedFilename, encryptedText);
-    cout << " encrypted text is saved to the file \n" << encodedFilename << endl;
-    // read encrypted text to its original state
-    string readEncryptedText = readFile(encodedFilename);
-    string decryptedText = decrypt(readEncryptedText, shift);
-    writeFile(decodedFilename, decryptedText);
-    cout << " The original text has been restored and preserved \n" << decodedFilename << endl;
+    if (position < 0 || position > content.size()) {
+        cerr << "error: in the specifed location outside the file!" << endl;
+        return;
+    }
+
+    content.insert(position, text); //  insert text in a specific position 
+    writeFile(filename, content);
+}
+
+//function to delet a specific text from file
+void deleteText(const string& filename, int position, int length) {
+    string content = readFile(filename);
+
+    if (position < 0 || position + length > content.size()) {
+        cerr << "error: in the specifed location outside the file!" << endl;
+        return;
+    }
+
+    content.erase(position, length); // delet file from a specific location
+    writeFile(filename, content);
+}
+
+int main() {
+    string filename = "data.txt";
+
+    // Create a file containing text       
+    writeFile(filename, " Hello world againe !");
+
+    cout << "Original content: " << readFile(filename) << endl;
+
+    // Insert a new text at a specific position      
+    insertText(filename, " C++ ", 10);
+    cout << "After insert: " << readFile(filename) << endl;
+
+    // Delet text from file   
+    deleteText(filename, 10, 5); // delet "C++ "
+    cout << "After delet: " << readFile(filename) << endl;
 
     return 0;
 }
